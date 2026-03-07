@@ -649,8 +649,13 @@
   transition: background 0.15s;
 }
 
-.dialkit-toolbar-copy:hover {
+.dialkit-toolbar-copy:hover:not(:disabled) {
   background: var(--dial-surface-hover);
+}
+
+.dialkit-toolbar-copy:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .dialkit-toolbar-copy-icon-wrap {

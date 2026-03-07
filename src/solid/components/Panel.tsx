@@ -1,4 +1,4 @@
-import { createSignal, createEffect, onMount, onCleanup, Show, For, JSX } from 'solid-js';
+import { createSignal, createEffect, createMemo, onMount, onCleanup, Show, For, JSX } from 'solid-js';
 import { animate } from 'motion';
 import { DialStore } from '../../store/DialStore';
 import type { ControlMeta, PanelConfig, SpringConfig, DialValue } from '../../store/DialStore';
@@ -25,6 +25,10 @@ export function Panel(props: PanelProps) {
   );
   const [presets, setPresets] = createSignal(DialStore.getPresets(props.panel.id));
   const [activePresetId, setActivePresetId] = createSignal(DialStore.getActivePresetId(props.panel.id));
+  const hasChanges = createMemo(() => {
+    values(); // track reactivity
+    return DialStore.getChangedValues(props.panel.id) !== null;
+  });
   let addButtonRef!: HTMLButtonElement;
   let copyButtonRef!: HTMLButtonElement;
   let copyClipboardIconRef!: HTMLSpanElement;
@@ -69,8 +73,9 @@ export function Panel(props: PanelProps) {
   };
 
   const handleCopy = () => {
-    const jsonStr = JSON.stringify(values(), null, 2);
-    const instruction = `Update the createDialKit configuration for "${props.panel.name}" with these values:\n\n\`\`\`json\n${jsonStr}\n\`\`\`\n\nApply these values as the new defaults in the createDialKit call.`;
+    const changed = DialStore.getChangedValues(props.panel.id);
+    if (!changed) return;
+    const instruction = `createDialKit("${props.panel.name}") changed defaults: ${JSON.stringify(changed)}`;
     navigator.clipboard.writeText(instruction);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -259,13 +264,14 @@ export function Panel(props: PanelProps) {
 
       <button
         ref={copyButtonRef}
-        class="dialkit-toolbar-copy"
+        class={`dialkit-toolbar-copy${hasChanges() ? '' : ' dialkit-toolbar-copy-disabled'}`}
         onClick={handleCopy}
+        disabled={!hasChanges()}
         onPointerDown={handleCopyTapStart}
         onPointerUp={handleCopyTapEnd}
         onPointerCancel={handleCopyTapEnd}
         onPointerLeave={handleCopyTapEnd}
-        title="Copy parameters"
+        title={hasChanges() ? 'Copy changed parameters' : 'No values have changed'}
       >
         <span class="dialkit-toolbar-copy-icon-wrap">
           <span

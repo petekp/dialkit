@@ -104,6 +104,7 @@ class DialStoreClass {
   private presets: Map<string, Preset[]> = new Map();
   private activePreset: Map<string, string | null> = new Map();
   private baseValues: Map<string, Record<string, DialValue>> = new Map();
+  private initialValues: Map<string, Record<string, DialValue>> = new Map();
 
   registerPanel(id: string, name: string, config: DialConfig): void {
     const controls = this.parseConfig(config, '');
@@ -115,6 +116,7 @@ class DialStoreClass {
     this.panels.set(id, { id, name, controls, values });
     this.snapshots.set(id, { ...values });
     this.baseValues.set(id, { ...values });
+    this.initialValues.set(id, { ...values });
     this.notifyGlobal();
   }
 
@@ -174,6 +176,7 @@ class DialStoreClass {
     }
 
     this.baseValues.set(id, nextBaseValues);
+    this.initialValues.set(id, { ...defaultValues });
 
     this.notify(id);
     this.notifyGlobal();
@@ -185,6 +188,7 @@ class DialStoreClass {
     this.snapshots.delete(id);
     this.actionListeners.delete(id);
     this.baseValues.delete(id);
+    this.initialValues.delete(id);
     this.notifyGlobal();
   }
 
@@ -345,6 +349,29 @@ class DialStoreClass {
 
   getActivePresetId(panelId: string): string | null {
     return this.activePreset.get(panelId) ?? null;
+  }
+
+  getChangedValues(panelId: string): Record<string, DialValue> | null {
+    const current = this.snapshots.get(panelId);
+    const base = this.initialValues.get(panelId);
+    if (!current || !base) return null;
+
+    const changed: Record<string, DialValue> = {};
+    for (const [path, value] of Object.entries(current)) {
+      if (path.endsWith('.__mode')) continue;
+      if (this.isActionConfig(value)) continue;
+      const baseVal = base[path];
+      if (baseVal === undefined) continue;
+      if (typeof value === 'object' && typeof baseVal === 'object') {
+        if (JSON.stringify(value) !== JSON.stringify(baseVal)) {
+          changed[path] = value;
+        }
+      } else if (value !== baseVal) {
+        changed[path] = value;
+      }
+    }
+
+    return Object.keys(changed).length > 0 ? changed : null;
   }
 
   clearActivePreset(panelId: string): void {
