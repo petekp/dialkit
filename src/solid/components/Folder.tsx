@@ -6,6 +6,7 @@ interface FolderProps {
   children: JSX.Element;
   defaultOpen?: boolean;
   isRoot?: boolean;
+  inline?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
   toolbar?: JSX.Element;
 }
@@ -61,6 +62,7 @@ export function Folder(props: FolderProps) {
   });
 
   const handleToggle = () => {
+    if (props.inline && props.isRoot) return;
     const next = !isOpen();
     setIsOpen(next);
     if (next) {
@@ -138,7 +140,7 @@ export function Folder(props: FolderProps) {
             </div>
           )}
 
-          {props.isRoot ? (
+          {props.isRoot && !props.inline && (
             <svg class="dialkit-panel-icon" viewBox="0 0 16 16" fill="none">
               <path
                 opacity="0.5"
@@ -149,7 +151,8 @@ export function Folder(props: FolderProps) {
               <circle cx="10.4999" cy="3.5" r="0.998657" fill="currentColor" stroke="currentColor" stroke-width="1.25" />
               <circle cx="9.75015" cy="12.5" r="0.997986" fill="currentColor" stroke="currentColor" stroke-width="1.25" />
             </svg>
-          ) : (
+          )}
+          {!props.isRoot && (
             <svg
               ref={folderChevronRef}
               class="dialkit-folder-icon"
@@ -204,8 +207,14 @@ export function Folder(props: FolderProps) {
     </div>
   );
 
-  // Root folders render inside the panel container.
   if (props.isRoot) {
+    if (props.inline) {
+      return (
+        <div class="dialkit-panel-inner dialkit-panel-inline">
+          {folderContent()}
+        </div>
+      );
+    }
     let panelRef!: HTMLDivElement;
     let rootPanelAnim: any = null;
     let rootPanelInitialized = false;

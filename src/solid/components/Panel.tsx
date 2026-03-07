@@ -14,6 +14,7 @@ import { PresetManager } from './PresetManager';
 interface PanelProps {
   panel: PanelConfig;
   defaultOpen?: boolean;
+  inline?: boolean;
 }
 
 export function Panel(props: PanelProps) {
@@ -295,7 +296,7 @@ export function Panel(props: PanelProps) {
 
   return (
     <div class="dialkit-panel-wrapper">
-      <Folder title={props.panel.name} defaultOpen={props.defaultOpen ?? true} isRoot={true} onOpenChange={setIsPanelOpen} toolbar={toolbar}>
+      <Folder title={props.panel.name} defaultOpen={props.defaultOpen ?? true} isRoot={true} inline={props.inline ?? false} onOpenChange={setIsPanelOpen} toolbar={toolbar}>
         {renderControls()}
       </Folder>
     </div>

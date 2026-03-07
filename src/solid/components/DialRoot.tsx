@@ -5,15 +5,18 @@ import type { PanelConfig } from '../../store/DialStore';
 import { Panel } from './Panel';
 
 export type DialPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+export type DialMode = 'popover' | 'inline';
 
 interface DialRootProps {
   position?: DialPosition;
   defaultOpen?: boolean;
+  mode?: DialMode;
 }
 
 export function DialRoot(props: DialRootProps) {
   const [panels, setPanels] = createSignal<PanelConfig[]>([]);
   const [mounted, setMounted] = createSignal(false);
+  const inline = () => (props.mode ?? 'popover') === 'inline';
 
   onMount(() => {
     setMounted(true);
@@ -24,17 +27,23 @@ export function DialRoot(props: DialRootProps) {
     onCleanup(unsub);
   });
 
+  const content = () => (
+    <div class="dialkit-root" data-mode={props.mode ?? 'popover'}>
+      <div class="dialkit-panel" data-position={inline() ? undefined : (props.position ?? 'top-right')} data-mode={props.mode ?? 'popover'}>
+        <For each={panels()}>
+          {(panel) => <Panel panel={panel} defaultOpen={inline() || (props.defaultOpen ?? true)} inline={inline()} />}
+        </For>
+      </div>
+    </div>
+  );
+
   return (
     <Show when={mounted() && typeof window !== 'undefined' && panels().length > 0}>
-      <Portal mount={document.body}>
-        <div class="dialkit-root">
-          <div class="dialkit-panel" data-position={props.position ?? 'top-right'}>
-            <For each={panels()}>
-              {(panel) => <Panel panel={panel} defaultOpen={props.defaultOpen ?? true} />}
-            </For>
-          </div>
-        </div>
-      </Portal>
+      <Show when={!inline()} fallback={content()}>
+        <Portal mount={document.body}>
+          {content()}
+        </Portal>
+      </Show>
     </Show>
   );
 }

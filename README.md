@@ -256,8 +256,21 @@ const values = useDialKit('Controls', {
 |------|------|---------|
 | `position` | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'` | `'top-right'` |
 | `defaultOpen` | `boolean` | `true` |
+| `mode` | `'popover' \| 'inline'` | `'popover'` |
 
-Mount once at your app root. The panel renders via a portal on `document.body`. It collapses to a small icon button and expands to 280px wide on click.
+Mount once at your app root. In the default `popover` mode, the panel renders via a portal on `document.body`. It collapses to a small icon button and expands to 280px wide on click.
+
+### Inline mode
+
+Use `mode="inline"` to render DialKit directly in your layout instead of as a floating popover. The panel fills its container and scrolls internally, which is useful for embedding in a sidebar or resizable panel:
+
+```tsx
+<aside style={{ width: 300, height: '100vh', overflow: 'hidden' }}>
+  <DialRoot mode="inline" />
+</aside>
+```
+
+In inline mode, the `position` prop is ignored and the collapse-to-icon behavior is disabled.
 
 ---
 

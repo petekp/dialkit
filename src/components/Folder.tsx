@@ -6,11 +6,12 @@ interface FolderProps {
   children: ReactNode;
   defaultOpen?: boolean;
   isRoot?: boolean;
+  inline?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
   toolbar?: ReactNode;
 }
 
-export function Folder({ title, children, defaultOpen = true, isRoot = false, onOpenChange, toolbar }: FolderProps) {
+export function Folder({ title, children, defaultOpen = true, isRoot = false, inline = false, onOpenChange, toolbar }: FolderProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isCollapsed, setIsCollapsed] = useState(!defaultOpen);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -31,6 +32,7 @@ export function Folder({ title, children, defaultOpen = true, isRoot = false, on
   }, [isOpen]);
 
   const handleToggle = () => {
+    if (inline && isRoot) return;
     const next = !isOpen;
     setIsOpen(next);
     if (next) {
@@ -60,8 +62,7 @@ export function Folder({ title, children, defaultOpen = true, isRoot = false, on
               </span>
             </div>
           )}
-          {isRoot ? (
-            // Root panel icon — fixed position, container morphs around it
+          {isRoot && !inline && (
             <svg
               className="dialkit-panel-icon"
               viewBox="0 0 16 16"
@@ -72,8 +73,8 @@ export function Folder({ title, children, defaultOpen = true, isRoot = false, on
               <circle cx="10.4999" cy="3.5" r="0.998657" fill="currentColor" stroke="currentColor" strokeWidth="1.25"/>
               <circle cx="9.75015" cy="12.5" r="0.997986" fill="currentColor" stroke="currentColor" strokeWidth="1.25"/>
             </svg>
-          ) : (
-            // Section folders use rotating chevron with gentle spring
+          )}
+          {!isRoot && (
             <motion.svg
               className="dialkit-folder-icon"
               viewBox="0 0 24 24"
@@ -115,8 +116,15 @@ export function Folder({ title, children, defaultOpen = true, isRoot = false, on
     </div>
   );
 
-  // For root folders, wrap in panel container — instant open/close
   if (isRoot) {
+    if (inline) {
+      return (
+        <div className="dialkit-panel-inner dialkit-panel-inline">
+          {folderContent}
+        </div>
+      );
+    }
+
     const panelStyle = isOpen
       ? { width: 280, height: contentHeight !== undefined ? contentHeight + 24 : 'auto' as const, borderRadius: 14, boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)', cursor: undefined as string | undefined }
       : { width: 42, height: 42, borderRadius: 21, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)', overflow: 'hidden' as const, cursor: 'pointer' as const };

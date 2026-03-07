@@ -4,15 +4,18 @@ import { DialStore, PanelConfig } from '../store/DialStore';
 import { Panel } from './Panel';
 
 export type DialPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+export type DialMode = 'popover' | 'inline';
 
 interface DialRootProps {
   position?: DialPosition;
   defaultOpen?: boolean;
+  mode?: DialMode;
 }
 
-export function DialRoot({ position = 'top-right', defaultOpen = true }: DialRootProps) {
+export function DialRoot({ position = 'top-right', defaultOpen = true, mode = 'popover' }: DialRootProps) {
   const [panels, setPanels] = useState<PanelConfig[]>([]);
   const [mounted, setMounted] = useState(false);
+  const inline = mode === 'inline';
 
   // Subscribe to global panel changes
   useEffect(() => {
@@ -37,14 +40,18 @@ export function DialRoot({ position = 'top-right', defaultOpen = true }: DialRoo
   }
 
   const content = (
-    <div className="dialkit-root">
-      <div className="dialkit-panel" data-position={position}>
+    <div className="dialkit-root" data-mode={mode}>
+      <div className="dialkit-panel" data-position={inline ? undefined : position} data-mode={mode}>
         {panels.map((panel) => (
-          <Panel key={panel.id} panel={panel} defaultOpen={defaultOpen} />
+          <Panel key={panel.id} panel={panel} defaultOpen={inline || defaultOpen} inline={inline} />
         ))}
       </div>
     </div>
   );
+
+  if (inline) {
+    return content;
+  }
 
   return createPortal(content, document.body);
 }
