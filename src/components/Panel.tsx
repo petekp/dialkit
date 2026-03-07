@@ -30,8 +30,6 @@ export function Panel({ panel, defaultOpen = true, inline = false }: PanelProps)
 
   const presets = DialStore.getPresets(panel.id);
   const activePresetId = DialStore.getActivePresetId(panel.id);
-  const hasChanges = DialStore.getChangedValues(panel.id) !== null;
-
   const handleAddPreset = () => {
     const nextNum = presets.length + 2;
     DialStore.savePreset(panel.id, `Version ${nextNum}`);
@@ -39,9 +37,9 @@ export function Panel({ panel, defaultOpen = true, inline = false }: PanelProps)
 
   const handleCopy = () => {
     const changed = DialStore.getChangedValues(panel.id);
-    if (!changed) return;
+    const data = changed ?? values;
 
-    const instruction = `useDialKit("${panel.name}") changed defaults: ${JSON.stringify(changed)}`;
+    const instruction = `Apply these new defaults for useDialKit("${panel.name}"): ${JSON.stringify(data)}`;
 
     navigator.clipboard.writeText(instruction);
     setCopied(true);
@@ -186,11 +184,10 @@ export function Panel({ panel, defaultOpen = true, inline = false }: PanelProps)
       />
 
       <motion.button
-        className={`dialkit-toolbar-copy${hasChanges ? '' : ' dialkit-toolbar-copy-disabled'}`}
+        className="dialkit-toolbar-copy"
         onClick={handleCopy}
-        disabled={!hasChanges}
-        title={hasChanges ? 'Copy changed parameters' : 'No values have changed'}
-        whileTap={hasChanges ? { scale: 0.95 } : undefined}
+        title="Copy configuration"
+        whileTap={{ scale: 0.95 }}
         transition={{ type: 'spring', visualDuration: 0.15, bounce: 0.3 }}
       >
         <span className="dialkit-toolbar-copy-icon-wrap">

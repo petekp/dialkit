@@ -1,4 +1,4 @@
-import { createSignal, createEffect, createMemo, onMount, onCleanup, Show, For, JSX } from 'solid-js';
+import { createSignal, createEffect, onMount, onCleanup, Show, For, JSX } from 'solid-js';
 import { animate } from 'motion';
 import { DialStore } from '../../store/DialStore';
 import type { ControlMeta, PanelConfig, SpringConfig, DialValue } from '../../store/DialStore';
@@ -25,10 +25,6 @@ export function Panel(props: PanelProps) {
   );
   const [presets, setPresets] = createSignal(DialStore.getPresets(props.panel.id));
   const [activePresetId, setActivePresetId] = createSignal(DialStore.getActivePresetId(props.panel.id));
-  const hasChanges = createMemo(() => {
-    values(); // track reactivity
-    return DialStore.getChangedValues(props.panel.id) !== null;
-  });
   let addButtonRef!: HTMLButtonElement;
   let copyButtonRef!: HTMLButtonElement;
   let copyClipboardIconRef!: HTMLSpanElement;
@@ -74,8 +70,8 @@ export function Panel(props: PanelProps) {
 
   const handleCopy = () => {
     const changed = DialStore.getChangedValues(props.panel.id);
-    if (!changed) return;
-    const instruction = `createDialKit("${props.panel.name}") changed defaults: ${JSON.stringify(changed)}`;
+    const data = changed ?? values();
+    const instruction = `Apply these new defaults for createDialKit("${props.panel.name}"): ${JSON.stringify(data)}`;
     navigator.clipboard.writeText(instruction);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -264,14 +260,13 @@ export function Panel(props: PanelProps) {
 
       <button
         ref={copyButtonRef}
-        class={`dialkit-toolbar-copy${hasChanges() ? '' : ' dialkit-toolbar-copy-disabled'}`}
+        class="dialkit-toolbar-copy"
         onClick={handleCopy}
-        disabled={!hasChanges()}
         onPointerDown={handleCopyTapStart}
         onPointerUp={handleCopyTapEnd}
         onPointerCancel={handleCopyTapEnd}
         onPointerLeave={handleCopyTapEnd}
-        title={hasChanges() ? 'Copy changed parameters' : 'No values have changed'}
+        title="Copy configuration"
       >
         <span class="dialkit-toolbar-copy-icon-wrap">
           <span
