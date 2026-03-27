@@ -30,22 +30,16 @@ export function Panel({ panel, defaultOpen = true, inline = false }: PanelProps)
 
   const presets = DialStore.getPresets(panel.id);
   const activePresetId = DialStore.getActivePresetId(panel.id);
-
   const handleAddPreset = () => {
     const nextNum = presets.length + 2;
     DialStore.savePreset(panel.id, `Version ${nextNum}`);
   };
 
   const handleCopy = () => {
-    const jsonStr = JSON.stringify(values, null, 2);
+    const changed = DialStore.getChangedValues(panel.id);
+    const data = changed ?? values;
 
-    const instruction = `Update the useDialKit configuration for "${panel.name}" with these values:
-
-\`\`\`json
-${jsonStr}
-\`\`\`
-
-Apply these values as the new defaults in the useDialKit call.`;
+    const instruction = `Apply these new defaults for useDialKit("${panel.name}"): ${JSON.stringify(data)}`;
 
     navigator.clipboard.writeText(instruction);
     setCopied(true);
@@ -192,7 +186,7 @@ Apply these values as the new defaults in the useDialKit call.`;
       <motion.button
         className="dialkit-toolbar-copy"
         onClick={handleCopy}
-        title="Copy parameters"
+        title="Copy configuration"
         whileTap={{ scale: 0.95 }}
         transition={{ type: 'spring', visualDuration: 0.15, bounce: 0.3 }}
       >

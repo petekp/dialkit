@@ -69,8 +69,9 @@ export function Panel(props: PanelProps) {
   };
 
   const handleCopy = () => {
-    const jsonStr = JSON.stringify(values(), null, 2);
-    const instruction = `Update the createDialKit configuration for "${props.panel.name}" with these values:\n\n\`\`\`json\n${jsonStr}\n\`\`\`\n\nApply these values as the new defaults in the createDialKit call.`;
+    const changed = DialStore.getChangedValues(props.panel.id);
+    const data = changed ?? values();
+    const instruction = `Apply these new defaults for createDialKit("${props.panel.name}"): ${JSON.stringify(data)}`;
     navigator.clipboard.writeText(instruction);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -265,7 +266,7 @@ export function Panel(props: PanelProps) {
         onPointerUp={handleCopyTapEnd}
         onPointerCancel={handleCopyTapEnd}
         onPointerLeave={handleCopyTapEnd}
-        title="Copy parameters"
+        title="Copy configuration"
       >
         <span class="dialkit-toolbar-copy-icon-wrap">
           <span
